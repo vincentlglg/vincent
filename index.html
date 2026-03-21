@@ -2,14 +2,13 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>115年 展平鎮 值星管理系統 - 列印強化版</title>
+    <title>115年 展平鎮 值星管理系統 - 時段衝突修正版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-                  <style>
+    <style>
         :root { --main-font-size: 16px; }
         * { font-family: "Microsoft JhengHei", sans-serif; font-weight: bold !important; box-sizing: border-box; }
         body { background-color: #f0f2f5; margin: 0; text-align: center; }
         
-        /* 導覽與控制列 */
         .nav-tabs { background: #1a73e8; display: flex; justify-content: center; position: sticky; top: 0; z-index: 9999; }
         .tab-btn { padding: 15px 20px; border: none; background: none; color: white; cursor: pointer; font-size: 18px; }
         .tab-btn.active { background: #fff; color: #1a73e8; border-radius: 10px 10px 0 0; }
@@ -17,9 +16,16 @@
         .tab-content.active { display: block; }
         
         .control-bar { padding: 10px; background: white; border-bottom: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; }
+        
+        .staff-manager { background: #e8f0fe; padding: 12px; border-bottom: 2px solid #1a73e8; display: flex; justify-content: center; gap: 15px; align-items: center; flex-wrap: wrap; }
+        .mgr-group { display: flex; align-items: center; gap: 8px; border-right: 2px solid #ccc; padding-right: 15px; }
+        .mgr-group:last-child { border-right: none; }
+        .staff-manager input, .staff-manager select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        .btn-add { background: #2e7d32; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
+        .btn-del { background: #c62828; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
+
         .zoom-ctrl { background: #eee; padding: 5px 15px; border-radius: 20px; border: 1px solid #ccc; }
         
-        /* 標題與欄位樣式 */
         .styled-title { font-size: 42px !important; color: #00008B !important; margin: 20px 0; }
         .header-highlight { background: #ADD8E6 !important; color: #00008B !important; font-size: 32px !important; padding: 12px !important; border: 2px solid #4682B4 !important; }
 
@@ -27,8 +33,7 @@
         .warn-red { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .warn-purple { background: #f3e5f5; color: #7b1fa2; border: 1px solid #ce93d8; margin-top: 5px; }
 
-        /* 表格結構 */
-        .table-wrapper { width: 100%; overflow: auto; height: calc(100vh - 350px); background: white; border: 1px solid #ccc; }
+        .table-wrapper { width: 100%; overflow: auto; height: calc(100vh - 420px); background: white; border: 1px solid #ccc; }
         .editor-table, .list-table, .cal-box, #calendarGrid, .editor-table select { font-size: var(--main-font-size) !important; }
         .editor-table { border-collapse: separate; border-spacing: 0; min-width: 4000px; }
         
@@ -48,74 +53,25 @@
         .bg-pm { background-color: #ffcdd2 !important; }
 
         .auto-box { background: #e3f2fd; padding: 8px 15px; border-radius: 10px; border: 1.5px solid #2196f3; display: flex; align-items: center; gap: 8px; }
+        .btn-edit-mode { background: #673ab7; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
+        .btn-edit-mode.active { background: #f44336; }
 
-        /* --- 列印優化：文字極大化 80% 佔比 & 背景顏色保留 --- */
         @media print {
-            /* 基礎 UI 隱藏 */
-            .nav-tabs, .control-bar, .auto-box, .warning-area, button, input[type="range"], .zoom-ctrl { display: none !important; }
-            
-            /* 強制保留顏色 */
-            * { 
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important; 
-                color-adjust: exact !important;
-            }
-
+            .nav-tabs, .control-bar, .auto-box, .warning-area, button, input[type="range"], .zoom-ctrl, .staff-manager { display: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
             body { background: white !important; margin: 0 !important; padding: 0 !important; }
             .tab-content.active { display: block !important; width: 100% !important; margin: 0 !important; }
-
-            /* 標題壓縮 */
             .styled-title { font-size: 20px !important; margin: 5px 0 !important; height: auto !important; }
-
-            /* 1. 月曆視圖：橫向列印最佳化 */
-            #calView.active #calendarGrid { 
-                width: 100% !important; 
-                border: 2px solid #000 !important; 
-                gap: 1px !important; 
-            }
-            #calView .cal-box { 
-                min-height: 100px !important; 
-                padding: 2px !important;
-                display: flex;
-                flex-direction: column;
-                justify-content: center; /* 文字垂直置中 */
-            }
-            /* 月曆內文字放大至佔滿格子 */
-            #calView .cal-box div:last-child { 
-                font-size: 18px !important; 
-                line-height: 1.4 !important;
-                text-align: center !important;
-            }
-
-            /* 2. 清單視圖：直向單頁極大化 */
-            #listView.active { 
-                height: 98vh !important; 
-                overflow: hidden !important; 
-            }
-            #listView .list-table { 
-                width: 100% !important; 
-                height: 90% !important; /* 強制表格佔用大部分頁面高度 */
-                table-layout: fixed !important; 
-            }
-            #listView .list-table td { 
-                padding: 0 !important; /* 去除內距以利文字擴張 */
-                font-size: 22px !important; /* 文字極大化 */
-                height: 2.8vh !important; /* 根據視窗高度平均分配格子高度 */
-                vertical-align: middle !important;
-                border: 1px solid #000 !important;
-            }
-            #listView .list-table th {
-                font-size: 18px !important;
-                padding: 5px 0 !important;
-            }
-
+            #calView.active #calendarGrid { width: 100% !important; border: 2px solid #000 !important; gap: 1px !important; }
+            #calView .cal-box { min-height: 100px !important; padding: 2px !important; display: flex; flex-direction: column; justify-content: center; }
+            #calView .cal-box div:last-child { font-size: 18px !important; line-height: 1.4 !important; text-align: center !important; }
+            #listView.active { height: 98vh !important; overflow: hidden !important; }
+            #listView .list-table { width: 100% !important; height: 90% !important; table-layout: fixed !important; }
+            #listView .list-table td { padding: 0 !important; font-size: 22px !important; height: 2.8vh !important; vertical-align: middle !important; border: 1px solid #000 !important; }
+            #listView .list-table th { font-size: 18px !important; padding: 5px 0 !important; }
             @page { margin: 0.6cm; }
         }
     </style>
-
-
-
-
 </head>
 <body>
 
@@ -128,8 +84,10 @@
 <div class="control-bar">
     年度：<select class="sync-year" onchange="syncGlobal('year', this.value)"></select>
     月份：<select class="sync-month" onchange="syncGlobal('month', this.value)"></select>
-    單位：<select id="filterDept" onchange="renderAll()"></select>
+    篩選：<select id="filterDept" onchange="renderAll()"></select>
     
+    <button id="toggleEditDept" class="btn-edit-mode" onclick="toggleEditDeptMode()">🔓 開啟單位變更</button>
+
     <div class="zoom-ctrl">
         🔍 縮放：<input type="range" min="12" max="60" value="16" oninput="changeFontSize(this.value)">
         <span id="fontSizeVal">16px</span>
@@ -147,8 +105,26 @@
     <input type="file" id="fIn" style="display:none" onchange="loadData(event)">
 </div>
 
+<div class="staff-manager">
+    <div class="mgr-group">
+        <span>🏢 單位管理：</span>
+        <input type="text" id="newDeptName" placeholder="新單位名稱" style="width:90px;">
+        <button class="btn-add" onclick="manageDept('add')">新增單位</button>
+        <select id="delDeptOnlySelect" style="width:100px;"></select>
+        <button class="btn-del" onclick="manageDept('del')">刪除整組</button>
+    </div>
+    <div class="mgr-group">
+        <span>👤 人員管理：</span>
+        <select id="addStaffToDept"></select>
+        <input type="text" id="newStaffName" placeholder="姓名" style="width:70px;">
+        <button class="btn-add" onclick="manageStaff('add')">新增</button>
+        <select id="delStaffFromDept" onchange="updateDelStaffList(this.value)"></select>
+        <select id="delStaffName" style="width:80px;"><option value="">選人</option></select>
+        <button class="btn-del" onclick="manageStaff('del')">刪除</button>
+    </div>
+</div>
+
 <div id="dataInput" class="tab-content active">
-    <h2 class="styled-title" style="display:none;" id="printEditorTitle">展平鎮 值星排班狀況</h2>
     <div id="warnRed" class="warning-area warn-red"></div>
     <div id="warnPurple" class="warning-area warn-purple"></div>
     <div class="table-wrapper">
@@ -180,11 +156,10 @@
 </div>
 
 <script>
-// --- 資料區與邏輯區 (保持絕對不變) ---
-const staffData = {
+let staffData = {
     "1處":["張瑞平","楊芷寧","胡桂梅","李靜怡","黃聖雄","胡月華","孟芝羽","沈為程","陳素密","莊桂華","範瑞美"],
     "2處":["簡珮洵","陳琇琴","呂桂蘭","黃淑惠","劉玉鳳","彭寀妍","梁翎㚬","謝月真","李莉蒨","羅新武","胡秀玲"],
-    "3處":["游家嫻","王宏裕","王巧葳","許詩昀","陳麗琴","羅妙珍","楊寶雲","劉梅枝","陳昭明","吳巫明","胡詩怡","游曉娟","鍾美清","胡柏緯","簡婉瑄","李宜盈"],
+    "3處":["游家嫻","王宏裕","王巧葳","許詩昀","陳麗琴","羅妙珍","楊寶雲","劉梅枝","陳昭明","吳巫明","胡詩怡","游曉娟","鍾美清","胡柏緯","簡婉瑄","技術盈"],
     "4處":["曾鴻富","劉興陽","陳伊柔","簡志偉","周詩萍","陳思婷","黃暐晴","胡惠茹","許衣彤","廖玟茜","陳嘉誼","陳登睿"],
     "6處":["張碧如","蔡江山","陳敏華","蘇素瑜","潘月紅","彭筱茵"],
     "7處":["湯大志","範幸秀","吳嘉綺","莫慧心","閔愛連","郭欣穎","彭春祥"],
@@ -196,13 +171,13 @@ const staffData = {
 const holidayMap = {"1-1":"元旦","2-16":"除夕","2-17":"初一","2-18":"初二","2-19":"初三","2-20":"初四","2-21":"初五","2-22":"補假","2-27":"調整假","2-28":"和平紀念","4-3":"兒童節","4-4":"清明節","4-5":"補假","4-6":"補假(休)","5-1":"勞動節","6-20":"端午節","9-26":"中秋節","10-10":"國慶日"};
 const dayNames = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
 const importData = [
-    {m:1,d:2,am:"周詩萍",pm:"彭筱茵"},{m:1,d:5,am:"陳思婷",pm:"駱玫伶"},{m:1,d:6,am:"黃暐晴",pm:"楊雯貝"},{m:1,d:7,am:"許衣彤",pm:"張向宜"},{m:1,d:8,am:"廖玟茜",pm:"林美珍"},{m:1,d:9,am:"陳嘉誼",pm:"莊彭傑"},{m:1,d:12,am:"張碧如",pm:"劉燕花"},{m:1,d:13,am:"陳敏華",pm:"黎玉惠"},{m:1,d:14,am:"潘月紅",pm:"林煜翔"},{m:1,d:15,am:"湯大志",pm:"張玉旻"},{m:1,d:16,am:"吳嘉綺",pm:"張瑞平"},{m:1,d:19,am:"閔愛連",pm:"胡月華"},{m:1,d:20,am:"郭欣穎",pm:"孟芝羽"},{m:1,d:21,am:"李淑珍",pm:"沈為程"},{m:1,d:22,am:"徐鳳嬌",pm:"黃淑惠"},{m:1,d:23,am:"葉徐瑞日",pm:"梁翎㚬"},{m:1,d:26,am:"範瑜庭",pm:"李莉蒨"},{m:1,d:27,am:"蔡明秋",pm:"胡詩怡"},{m:1,d:28,am:"潘炳元",pm:"簡婉瑄"},{m:1,d:29,am:"黃育瀚",pm:"李宜盈"},{m:1,d:30,am:"李思穎",pm:"劉興陽"},
+    {m:1,d:2,am:"周詩萍",pm:"彭筱茵"},{m:1,d:5,am:"陳思婷",pm:"駱玫伶"},{m:1,d:6,am:"黃暐晴",pm:"楊雯貝"},{m:1,d:7,am:"許衣彤",pm:"張向宜"},{m:1,d:8,am:"廖玟茜",pm:"林美珍"},{m:1,d:9,am:"陳嘉誼",pm:"莊彭傑"},{m:1,d:12,am:"張碧如",pm:"劉燕花"},{m:1,d:13,am:"陳敏華",pm:"黎玉惠"},{m:1,d:14,am:"潘月紅",pm:"林煜翔"},{m:1,d:15,am:"湯大志",pm:"張玉旻"},{m:1,d:16,am:"吳嘉綺",pm:"張瑞平"},{m:1,d:19,am:"閔愛連",pm:"胡月華"},{m:1,d:20,am:"郭欣穎",pm:"孟芝羽"},{m:1,d:21,am:"李淑珍",pm:"沈為程"},{m:1,d:22,am:"徐鳳嬌",pm:"黃淑惠"},{m:1,d:23,am:"葉徐瑞日",pm:"梁翎㚬"},{m:1,d:26,am:"範瑜庭",pm:"李莉蒨"},{m:1,d:27,am:"蔡明秋",pm:"胡詩怡"},{m:1,d:28,am:"潘炳元",pm:"簡婉瑄"},{m:1,d:29,am:"黃育瀚",pm:"李盈盈"},{m:1,d:30,am:"李思穎",pm:"劉興陽"},
     {m:2,d:2,am:"黃詩媛",pm:"黃聖雄"},{m:2,d:3,am:"王德安",pm:"陳素密"},{m:2,d:4,am:"李雅嵐",pm:"範瑞美"},{m:2,d:5,am:"楊芷寧",pm:"楊寶雲"},{m:2,d:6,am:"李靜怡",pm:"劉梅枝"},{m:2,d:9,am:"胡月華",pm:"羅妙珍"},{m:2,d:10,am:"簡珮洵",pm:"游家嫻"},{m:2,d:11,am:"陳琇琴",pm:"陳思婷"},{m:2,d:12,am:"呂桂蘭",pm:"陳登睿"},{m:2,d:13,am:"劉玉鳳",pm:"張碧如"},{m:2,d:23,am:"彭寀妍",pm:"陳敏華"},{m:2,d:24,am:"王巧葳",pm:"潘月紅"},{m:2,d:25,am:"王宏裕",pm:"湯大志"},{m:2,d:26,am:"許詩昀",pm:"吳嘉綺"},
-    {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"胡秀玲",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"範瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"李宜盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
-    {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"開煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"蘇素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"李宜盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
+    {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"胡秀玲",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"範瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"李盈盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
+    {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"林煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"蘇素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"李盈盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
 ];
 
-let allRosterData = [], currentYear = 2026, currentMonth = 1;
+let allRosterData = [], currentYear = 2026, currentMonth = 1, isEditDeptMode = false;
 
 (function init(){
     const ys = document.querySelectorAll(".sync-year"), ms = document.querySelectorAll(".sync-month");
@@ -215,8 +190,71 @@ let allRosterData = [], currentYear = 2026, currentMonth = 1;
     const h1 = document.getElementById("hRow1"), h2 = document.getElementById("hRow2");
     h1.innerHTML = `<th rowspan="2" class="fix-col-1">單位</th><th rowspan="2" class="fix-col-2">人員姓名</th><th rowspan="2" class="fix-col-3">全年度<br>次數</th>`;
     for(let m=1; m<=12; m++){ h1.innerHTML += `<th colspan="2">${m}月</th>`; h2.innerHTML += `<th>日期</th><th>時段</th>`; }
+    
+    updateAllDeptSelectors();
     initData();
 })();
+
+function manageDept(action) {
+    if(action === 'add') {
+        const name = document.getElementById("newDeptName").value.trim();
+        if(!name) return alert("請輸入單位名稱");
+        if(staffData[name]) return alert("此單位已存在");
+        staffData[name] = [];
+        document.getElementById("newDeptName").value = "";
+    } else {
+        const name = document.getElementById("delDeptOnlySelect").value;
+        if(!name) return alert("請選擇單位");
+        if(!confirm(`⚠️ 確定要刪除整個 [${name}] 嗎？`)) return;
+        delete staffData[name];
+        allRosterData = allRosterData.filter(p => p.dept !== name);
+    }
+    updateAllDeptSelectors(); renderAll();
+}
+
+function updateAllDeptSelectors() {
+    const depts = Object.keys(staffData);
+    const filter = document.getElementById("filterDept"), addS = document.getElementById("addStaffToDept"),
+          delS = document.getElementById("delStaffFromDept"), delD = document.getElementById("delDeptOnlySelect");
+    let html = depts.map(d => `<option value="${d}">${d}</option>`).join('');
+    filter.innerHTML = `<option value="ALL">全部單位</option>` + html;
+    addS.innerHTML = html; delS.innerHTML = `<option value="">請選單位</option>` + html;
+    delD.innerHTML = `<option value="">請選單位</option>` + html;
+    updateDelStaffList("");
+}
+
+function updateDelStaffList(dept) {
+    const sSel = document.getElementById("delStaffName");
+    if(!dept || !staffData[dept]) { sSel.innerHTML = `<option value="">選人</option>`; return; }
+    sSel.innerHTML = staffData[dept].map(n => `<option value="${n}">${n}</option>`).join('');
+}
+
+function manageStaff(action) {
+    if(action === 'add') {
+        const dept = document.getElementById("addStaffToDept").value, name = document.getElementById("newStaffName").value.trim();
+        if(!name) return alert("請輸入姓名");
+        if(staffData[dept].includes(name)) return alert("該人員已存在");
+        staffData[dept].push(name);
+        allRosterData.push({ dept, name, schedule: Object.fromEntries(Array.from({length:12}, (_,i)=>[i+1, {date:"", time:""}])) });
+        document.getElementById("newStaffName").value = "";
+    } else {
+        const dept = document.getElementById("delStaffFromDept").value, name = document.getElementById("delStaffName").value;
+        if(!dept || !name) return alert("請選擇人員");
+        if(!confirm(`確定要刪除 ${name} 嗎？`)) return;
+        staffData[dept] = staffData[dept].filter(n => n !== name);
+        allRosterData = allRosterData.filter(p => !(p.dept === dept && p.name === name));
+        updateDelStaffList(dept);
+    }
+    renderAll();
+}
+
+function toggleEditDeptMode() {
+    isEditDeptMode = !isEditDeptMode;
+    const btn = document.getElementById("toggleEditDept");
+    btn.innerText = isEditDeptMode ? "🔒 關閉單位變更" : "🔓 開啟單位變更";
+    btn.classList.toggle("active", isEditDeptMode);
+    renderAll();
+}
 
 function initData() {
     allRosterData = [];
@@ -233,109 +271,21 @@ function initData() {
     renderAll();
 }
 
-// (其他原本功能如 autoScheduleRange, getConflicts, renderAll 等保持原樣)
-function autoScheduleRange() {
-    const start = parseInt(document.getElementById("startM").value), end = parseInt(document.getElementById("endM").value);
-    if(start > end) return alert("月份範圍選擇錯誤");
-    if(!confirm(`自動排定 ${start}月至${end}月 班表？\n1. 單位集中\n2. 次數公平\n3. 避開衝突\n4. 不可連排三月`)) return;
-    allRosterData.forEach(p => { for(let m=start; m<=end; m++){ p.schedule[m].date=""; p.schedule[m].time=""; }});
-    for(let m=start; m<=end; m++) {
-        const workDays = getWorkdays(currentYear, m);
-        let slots = [];
-        workDays.forEach(d => { slots.push({date: d, time: "上午"}); slots.push({date: d, time: "下午"}); });
-        slots.forEach(slot => {
-            let candidates = allRosterData.filter(p => {
-                if (m >= 3 && p.schedule[m-1].date && p.schedule[m-2].date) return false;
-                return !p.schedule[m].date;
-            }).map(p => {
-                let totalCount = 0; for(let i=1; i<=12; i++) if(p.schedule[i].date) totalCount++;
-                let deptInMonth = allRosterData.filter(x => x.dept === p.dept && x.schedule[m].date).length;
-                let lastTime = ""; for(let i=m-1; i>=1; i--) if(p.schedule[i].date){ lastTime = p.schedule[i].time; break; }
-                return { p, totalCount, deptScore: deptInMonth > 0 ? 0 : 1, isTimeConflict: (lastTime === slot.time) ? 1 : 0 };
-            });
-            candidates.sort((a,b) => {
-                if(a.isTimeConflict !== b.isTimeConflict) return a.isTimeConflict - b.isTimeConflict;
-                if(a.deptScore !== b.deptScore) return a.deptScore - b.deptScore;
-                return a.totalCount - b.totalCount;
-            });
-            if(candidates.length > 0) {
-                let winner = candidates[0].p;
-                winner.schedule[m].date = slot.date; winner.schedule[m].time = slot.time;
-            }
-        });
-    }
-    renderAll();
-    alert("預排完成！");
-}
-
-function changeFontSize(val) {
-    document.documentElement.style.setProperty('--main-font-size', val + 'px');
-    document.getElementById("fontSizeVal").innerText = val + "px";
-}
-
-function getWorkdays(y, m) {
-    let days = [], end = new Date(y, m, 0).getDate();
-    for(let d=1; d<=end; d++) {
-        let wk = new Date(y, m-1, d).getDay(); let key = `${m}-${d}`;
-        if(!holidayMap[key] && wk!==0 && wk!==6) days.push(`${m}月${d}日`);
-    }
-    return days;
-}
-
-function getConflicts() {
-    let redConflictKeys = [], personConflictList = [], redArr = [], purArr = [];
-    for(let m=1; m<=12; m++) {
-        let dayCheck = {};
-        allRosterData.forEach(p => {
-            if(p.schedule[m].date && p.schedule[m].time) {
-                let key = `${p.schedule[m].date}-${p.schedule[m].time}`;
-                if(!dayCheck[key]) dayCheck[key] = []; dayCheck[key].push(p.name);
-            }
-        });
-        for(let k in dayCheck) if(dayCheck[k].length > 1) {
-            redArr.push(`[${m}月 ${k}] 重複：${dayCheck[k].join(',')}`);
-            dayCheck[k].forEach(name => { if(!personConflictList.includes(name)) personConflictList.push(name); redConflictKeys.push(`${m}-${k}`); });
-        }
-    }
-    allRosterData.forEach(p => {
-        let activeMonths = [];
-        for(let m=1; m<=12; m++) if(p.schedule[m].date) activeMonths.push({ m, time: p.schedule[m].time });
-        for(let i=0; i<activeMonths.length-2; i++){
-            if(activeMonths[i+1].m === activeMonths[i].m + 1 && activeMonths[i+2].m === activeMonths[i+1].m + 1) {
-                purArr.push(`🚫 ${p.name} 違反原則：連續於 ${activeMonths[i].m}、${activeMonths[i+1].m}、${activeMonths[i+2].m} 月均有排班`);
-                if(!personConflictList.includes(p.name)) personConflictList.push(p.name);
-            }
-        }
-        for(let i=0; i<activeMonths.length-1; i++) {
-            if(activeMonths[i+1].time === activeMonths[i].time) {
-                purArr.push(`⚠️ ${p.name} 時段重複：${activeMonths[i].m}月與${activeMonths[i+1].m}月皆為 [${activeMonths[i].time}]`);
-                if(!personConflictList.includes(p.name)) personConflictList.push(p.name);
-            }
-        }
-    });
-    const rd = document.getElementById("warnRed"), pd = document.getElementById("warnPurple");
-    rd.style.display = redArr.length ? "block" : "none"; rd.innerHTML = "🚫 <b>同日時段重複：</b><br>" + redArr.join("<br>");
-    pd.style.display = purArr.length ? "block" : "none"; pd.innerHTML = "⚠️ <b>排班規則警示：</b><br>" + purArr.join("<br>");
-    return { redConflictKeys, personConflictList };
-}
-
 function renderAll() {
-    const filter = document.getElementById("filterDept").value || "ALL", tbody = document.getElementById("tb");
-    const filterSelect = document.getElementById("filterDept");
-    if(filterSelect.options.length <= 1) {
-        filterSelect.innerHTML = `<option value="ALL">全部單位</option>`;
-        Object.keys(staffData).forEach(d => filterSelect.innerHTML += `<option value="${d}">${d}</option>`);
-    }
+    const filter = document.getElementById("filterDept").value, tbody = document.getElementById("tb");
     tbody.innerHTML = "";
     const { redConflictKeys, personConflictList } = getConflicts();
-    allRosterData.forEach(p => {
+    
+    allRosterData.forEach((p, idx) => {
         if(filter !== "ALL" && p.dept !== filter) return;
         let total = 0; for(let m=1; m<=12; m++) if(p.schedule[m].date) total++;
         const isConflict = personConflictList.includes(p.name);
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td class="fix-col-1 ${isConflict?'conflict-text':''}">${p.dept}</td>
-                        <td class="fix-col-2 ${isConflict?'conflict-text':''}">${p.name}</td>
-                        <td class="fix-col-3">${total}</td>`;
+
+        let deptContent = isEditDeptMode ? `<select onchange="changePersonDept(${idx}, this.value)">` + Object.keys(staffData).map(d => `<option value="${d}" ${p.dept===d?'selected':''}>${d}</option>`).join('') + `</select>` : p.dept;
+
+        tr.innerHTML = `<td class="fix-col-1 ${isConflict?'conflict-text':''}">${deptContent}</td><td class="fix-col-2 ${isConflict?'conflict-text':''}">${p.name}</td><td class="fix-col-3">${total}</td>`;
+        
         for(let m=1; m<=12; m++) {
             const tdD = document.createElement("td"), tdT = document.createElement("td");
             const sD = document.createElement("select"), sT = document.createElement("select");
@@ -355,25 +305,152 @@ function renderAll() {
     renderCalendar(); renderList();
 }
 
+function changePersonDept(pIdx, newDept) {
+    const oldDept = allRosterData[pIdx].dept;
+    const name = allRosterData[pIdx].name;
+    allRosterData[pIdx].dept = newDept;
+    staffData[oldDept] = staffData[oldDept].filter(n => n !== name);
+    staffData[newDept].push(name);
+}
+
+function getWorkdays(y, m) {
+    let days = [], end = new Date(y, m, 0).getDate();
+    for(let d=1; d<=end; d++) {
+        let wk = new Date(y, m-1, d).getDay(); let key = `${m}-${d}`;
+        if(!holidayMap[key] && wk!==0 && wk!==6) days.push(`${m}月${d}日`);
+    }
+    return days;
+}
+
+function getConflicts() {
+    let redConflictKeys = [], personConflictList = [], redArr = [], purArr = [];
+    
+    for(let m=1; m<=12; m++) {
+        let dayCheck = {};
+        allRosterData.forEach(p => {
+            if(p.schedule[m].date && p.schedule[m].time) {
+                let key = `${p.schedule[m].date}-${p.schedule[m].time}`;
+                if(!dayCheck[key]) dayCheck[key] = []; dayCheck[key].push(p.name);
+            }
+        });
+        for(let k in dayCheck) if(dayCheck[k].length > 1) {
+            redArr.push(`[${m}月 ${k}] 重複：${dayCheck[k].join(',')}`);
+            dayCheck[k].forEach(name => { if(!personConflictList.includes(name)) personConflictList.push(name); redConflictKeys.push(`${m}-${k}`); });
+        }
+    }
+
+    allRosterData.forEach(p => {
+        let activeMonths = [];
+        for(let m=1; m<=12; m++) if(p.schedule[m].date) activeMonths.push({ m: m, time: p.schedule[m].time });
+        for(let i=0; i < activeMonths.length; i++) {
+            if(i > 0 && activeMonths[i].time === activeMonths[i-1].time) {
+                purArr.push(`⚠️ ${p.name} 在 ${activeMonths[i-1].m}月與 ${activeMonths[i].m}月時段重複 (${activeMonths[i].time})`);
+                if(!personConflictList.includes(p.name)) personConflictList.push(p.name);
+            }
+            if(i < activeMonths.length - 2) {
+                if(activeMonths[i+1].m === activeMonths[i].m + 1 && activeMonths[i+2].m === activeMonths[i+1].m + 1) {
+                    purArr.push(`🚫 ${p.name} 連續三個月排班 (${activeMonths[i].m}-${activeMonths[i+2].m}月)`);
+                    if(!personConflictList.includes(p.name)) personConflictList.push(p.name);
+                }
+            }
+        }
+    });
+
+    const rd = document.getElementById("warnRed"), pd = document.getElementById("warnPurple");
+    rd.style.display = redArr.length ? "block" : "none"; rd.innerHTML = "🚫 <b>重複：</b><br>" + redArr.join("<br>");
+    pd.style.display = purArr.length ? "block" : "none"; pd.innerHTML = "⚠️ <b>規則：</b><br>" + purArr.join("<br>");
+    return { redConflictKeys, personConflictList };
+}
+
+function autoScheduleRange() {
+    const startM = parseInt(document.getElementById("startM").value), endM = parseInt(document.getElementById("endM").value);
+    if(startM > endM) return alert("月份範圍錯誤");
+
+    // 清空欲預排月份的舊紀錄
+    allRosterData.forEach(p => { for(let m=startM; m<=endM; m++){ p.schedule[m].date=""; p.schedule[m].time=""; }});
+
+    for(let m = startM; m <= endM; m++) {
+        const workDays = getWorkdays(currentYear, m);
+        let slots = [];
+        workDays.forEach(d => { slots.push({date: d, time: "上午"}); slots.push({date: d, time: "下午"}); });
+
+        let assignedInMonth = new Set();
+
+        slots.forEach(slot => {
+            let candidates = allRosterData
+                .filter(p => !p.schedule[m].date && !assignedInMonth.has(p.name))
+                .map(p => {
+                    let totalCount = 0; 
+                    for(let i=1; i<=12; i++) if(p.schedule[i].date) totalCount++;
+                    
+                    // 找出「上一次」排班的時段與連排狀況
+                    let lastTime = "", consecutiveCount = 0, lastMonthAssigned = false;
+                    for(let i = m - 1; i >= 1; i--) {
+                        if(p.schedule[i].date) {
+                            if(lastTime === "") lastTime = p.schedule[i].time;
+                            if(i === m - 1) lastMonthAssigned = true;
+                            consecutiveCount++;
+                        } else if(lastTime !== "") {
+                             // 已找到最近一次排班，中斷連排計數但保留時段紀錄
+                             break;
+                        }
+                    }
+
+                    let score = totalCount * 100; 
+                    
+                    // 核心修正：針對「時段衝突（本次與上次相同）」給予極高懲罰分
+                    if(lastTime === slot.time) score += 10000; 
+                    
+                    // 連排三個月懲罰
+                    if(lastMonthAssigned && consecutiveCount >= 2) score += 20000; 
+                    
+                    // 單位集中優先度 (負分代表更優先)
+                    let sameDeptInMonth = allRosterData.filter(p2 => p2.dept === p.dept && assignedInMonth.has(p2.name)).length;
+                    score -= sameDeptInMonth * 50;
+
+                    // 微量隨機值
+                    score += Math.floor(Math.random() * 30);
+
+                    return { p, score };
+                });
+
+            candidates.sort((a,b) => a.score - b.score);
+
+            if(candidates.length > 0) {
+                let winner = candidates[0].p;
+                winner.schedule[m].date = slot.date;
+                winner.schedule[m].time = slot.time;
+                assignedInMonth.add(winner.name);
+            }
+        });
+    }
+    renderAll();
+    alert("預排完成！已大幅強化時段避讓權重，儘量確保本次與上次時段不重複。");
+}
+
+function changeFontSize(val) {
+    document.documentElement.style.setProperty('--main-font-size', val + 'px');
+    document.getElementById("fontSizeVal").innerText = val + "px";
+}
+
 function syncGlobal(type, val) {
     if(type==='year') currentYear=parseInt(val); else currentMonth=parseInt(val);
-    const txt = `115年 ${currentMonth}月 展平鎮 值星`;
-    document.getElementById("calTitle").innerText = txt; document.getElementById("listTitle").innerText = txt;
-    document.getElementById("printEditorTitle").innerText = `展平鎮 值星排班表 (${document.getElementById("filterDept").value})`;
+    document.getElementById("calTitle").innerText = `115年 ${currentMonth}月 展平鎮 值星`;
+    document.getElementById("listTitle").innerText = `115年 ${currentMonth}月 展平鎮 值星`;
     renderAll();
 }
 
 function renderCalendar() {
     const grid = document.getElementById("calendarGrid");
-    grid.innerHTML = dayNames.map(d=>`<div class="header-highlight" style="font-size:22px !important; padding:8px !important;">${d}</div>`).join('');
+    grid.innerHTML = dayNames.map(d=>`<div class="header-highlight" style="font-size:20px !important;">${d}</div>`).join('');
     const first = new Date(currentYear, currentMonth-1, 1).getDay(), end = new Date(currentYear, currentMonth, 0).getDate();
     for(let i=0; i<first; i++) grid.innerHTML += `<div style="background:#eee; min-height:80px;"></div>`;
     for(let d=1; d<=end; d++) {
         const dStr = `${currentMonth}月${d}日`, wk = new Date(currentYear, currentMonth-1, d).getDay(), key = `${currentMonth}-${d}`;
         let am=[], pm=[]; allRosterData.forEach(p=>{ if(p.schedule[currentMonth].date===dStr){ if(p.schedule[currentMonth].time==="上午") am.push(p.name); else pm.push(p.name); }});
         grid.innerHTML += `<div class="cal-box" style="min-height:100px; background:white; border:1px solid #ddd; ${wk===0||wk===6||holidayMap[key]?'background:#ffebee;':''}">
-            <div style="font-size:1.2em">${d} <small style="color:red">${holidayMap[key]||''}</small></div>
-            <div style="font-size:1.0em; text-align:left; padding-left:5px;">上午:${am.join(',')||'-'}<br>下午:${pm.join(',')||'-'}</div>
+            <div>${d} <small style="color:red">${holidayMap[key]||''}</small></div>
+            <div style="text-align:left;">上午:${am.join(',')||'-'}<br>下午:${pm.join(',')||'-'}</div>
         </div>`;
     }
 }
@@ -384,7 +461,7 @@ function renderList() {
     for(let d=1; d<=end; d++) {
         const dStr = `${currentMonth}月${d}日`, wk = new Date(currentYear, currentMonth-1, d).getDay();
         let am=[], pm=[]; allRosterData.forEach(p=>{ if(p.schedule[currentMonth].date===dStr){ if(p.schedule[currentMonth].time==="上午") am.push(p.name); else pm.push(p.name); }});
-        if(am.length||pm.length) tb.innerHTML += `<tr><td style="border:1px solid #ddd; padding:10px; font-size:1.2em;">${currentMonth}/${d}</td><td class="header-highlight" style="font-size:1.2em !important;">${dayNames[wk]}</td><td class="bg-am" style="border:1px solid #ddd; font-size:1.2em;">${am.join(',')}</td><td class="bg-pm" style="border:1px solid #ddd; font-size:1.2em;">${pm.join(',')}</td></tr>`;
+        if(am.length||pm.length) tb.innerHTML += `<tr><td>${currentMonth}/${d}</td><td class="header-highlight">${dayNames[wk]}</td><td class="bg-am">${am.join(',')}</td><td class="bg-pm">${pm.join(',')}</td></tr>`;
     }
 }
 
@@ -403,13 +480,17 @@ function exportFullYearExcel() {
 }
 
 function saveData() {
-    const blob = new Blob([JSON.stringify({year: currentYear, data: allRosterData})], {type:"text/plain"});
+    const blob = new Blob([JSON.stringify({year: currentYear, data: allRosterData, staffRaw: staffData})], {type:"text/plain"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `值星存檔_115.txt`; a.click();
 }
 
 function loadData(e) {
     const reader = new FileReader();
-    reader.onload = (ev) => { const res = JSON.parse(ev.target.result); allRosterData = res.data; renderAll(); alert("讀取成功"); };
+    reader.onload = (ev) => { 
+        const res = JSON.parse(ev.target.result); 
+        allRosterData = res.data; if(res.staffRaw) staffData = res.staffRaw;
+        updateAllDeptSelectors(); renderAll(); alert("讀取成功"); 
+    };
     reader.readAsText(e.target.files[0]);
 }
 
