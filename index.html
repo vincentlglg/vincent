@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>115年 展平鎮 值星管理系統 - 列印優化版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <style>
+    <style>
         :root { --main-font-size: 16px; }
         * { font-family: "Microsoft JhengHei", sans-serif; font-weight: bold !important; box-sizing: border-box; }
         body { background-color: #f0f2f5; margin: 0; text-align: center; }
@@ -61,72 +61,66 @@
         /* --- 列印修正功能區 --- */
         @media print {
             @page { 
-                size: auto; /* 讓系統根據橫/直向自動調整 */
-                margin: 0.5cm; 
+                size: A4 portrait; 
+                margin: 0.8cm; 
             }
             
-            /* 隱藏 UI 控制項 */
-            .nav-tabs, .control-bar, .auto-box, .warning-area, button, input, .zoom-ctrl, .staff-manager { 
+            /* 隱藏 UI 控制項、勾選框與按鈕 */
+            .nav-tabs, .control-bar, .auto-box, .warning-area, button, input[type="range"], .zoom-ctrl, .staff-manager, input[type="checkbox"] { 
                 display: none !important; 
             }
             
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            /* 強制背景顏色顯示 */
+            * { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                color-adjust: exact !important; 
+            }
 
-            body { background: white !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            body { background: white !important; margin: 0 !important; padding: 0 !important; }
             
+            /* 清除編輯器寬度限制，讓表格符合紙張寬度 */
             .tab-content.active, .table-wrapper { 
                 width: 100% !important; 
                 height: auto !important; 
                 overflow: visible !important; 
                 margin: 0 !important;
-                display: block !important;
             }
             
-            /* 修正標題列印大小 */
-            .styled-title { font-size: 28px !important; margin: 10px 0 !important; }
+            .editor-table { 
+                min-width: 100% !important; 
+                table-layout: auto !important; 
+            }
+            
+            /* 修正標題 */
+            .styled-title { font-size: 24px !important; margin: 5px 0 !important; }
 
-            /* --- 月曆視圖：橫印優化 --- */
+            /* 月曆視圖列印優化 */
             #calView.active #calendarGrid { 
-                display: grid !important;
-                grid-template-columns: repeat(7, 1fr) !important;
-                width: 99vw !important; /* 強制撐開到接近滿版 */
-                min-width: 99vw !important;
+                width: 100% !important; 
                 border: 2px solid #000 !important; 
-                gap: 0 !important; /* 移除間隙避免計算誤差裁切 */
-                background: white !important;
+                gap: 1px !important; 
             }
             #calView .cal-box { 
-                min-height: 120px !important; /* 橫印時格子拉高 */
+                min-height: 100px !important; 
                 border: 1px solid #000 !important; 
                 break-inside: avoid;
-                padding: 5px !important;
-            }
-            #calView .header-highlight {
-                font-size: 18px !important;
-                background: #eee !important;
-                border: 1px solid #000 !important;
             }
 
-            /* --- 清單視圖：直印優化 --- */
+            /* 清單視圖列印優化 */
             #listView .list-table { 
                 width: 100% !important; 
-                min-width: 100% !important;
                 table-layout: fixed !important; 
                 border: 2px solid #000 !important;
             }
-            #listView .list-table td, #listView .list-table th { 
-                padding: 8px !important; 
+            #listView .list-table td { 
+                padding: 6px !important; 
                 font-size: 18px !important; 
                 border: 1px solid #000 !important; 
             }
             #listView tr { break-inside: avoid; }
-
-            /* 排班編輯頁面(若需列印) */
-            .editor-table { min-width: 100% !important; width: 100% !important; table-layout: auto !important; }
-            .fix-col-0, .fix-col-1, .fix-col-2, .fix-col-3 { position: static !important; }
         }
     </style>
-
 </head>
 <body>
 
@@ -214,9 +208,9 @@
 <script>
 // --- 此處保留您原始的 staffData, holidayMap, importData 與所有功能邏輯 ---
 let staffData = {
-    "1處":["張瑞平","楊芷寧","胡桂梅","李靜怡","黃聖雄","胡月華","孟芝羽","沈為程","陳素密","莊桂華","範瑞美"],
+    "1處":["張瑞平","楊芷寧","李靜怡","黃聖雄","胡月華","孟芝羽","沈為程","陳素密","莊桂華","范瑞美"],
     "2處":["簡珮洵","陳琇琴","呂桂蘭","黃淑惠","劉玉鳳","彭寀妍","梁翎㚬","謝月真","李莉蒨","羅新武","胡秀玲"],
-    "3處":["游家嫻","王宏裕","王巧葳","許詩昀","陳麗琴","羅妙珍","楊寶雲","劉梅枝","陳昭明","吳巫明","胡詩怡","游曉娟","鍾美清","胡柏緯","簡婉瑄","技術盈"],
+    "3處":["游家嫻","王宏裕","王巧葳","許詩昀","陳麗琴","羅妙珍","楊寶雲","劉梅枝","陳昭明","吳巫明","胡詩怡","游曉娟","鍾美清","胡柏緯","簡婉瑄","李宜盈"],
     "4處":["曾鴻富","劉興陽","陳伊柔","簡志偉","周詩萍","陳思婷","黃暐晴","胡惠茹","許衣彤","廖玟茜","陳嘉誼","陳登睿"],
     "6處":["張碧如","蔡江山","陳敏華","蘇素瑜","潘月紅","彭筱茵"],
     "7處":["湯大志","範幸秀","吳嘉綺","莫慧心","閔愛連","郭欣穎","彭春祥"],
@@ -242,10 +236,10 @@ const holidayMap = {
 const dayNames = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
 
 const importData = [
-    {m:1,d:2,am:"周詩萍",pm:"彭筱茵"},{m:1,d:5,am:"陳思婷",pm:"駱玫伶"},{m:1,d:6,am:"黃暐晴",pm:"楊雯貝"},{m:1,d:7,am:"許衣彤",pm:"張向宜"},{m:1,d:8,am:"廖玟茜",pm:"林美珍"},{m:1,d:9,am:"陳嘉誼",pm:"莊彭傑"},{m:1,d:12,am:"張碧如",pm:"劉燕花"},{m:1,d:13,am:"陳敏華",pm:"黎玉惠"},{m:1,d:14,am:"潘月紅",pm:"林煜翔"},{m:1,d:15,am:"湯大志",pm:"張玉旻"},{m:1,d:16,am:"吳嘉綺",pm:"張瑞平"},{m:1,d:19,am:"閔愛連",pm:"胡月華"},{m:1,d:20,am:"郭欣穎",pm:"孟芝羽"},{m:1,d:21,am:"李淑珍",pm:"沈為程"},{m:1,d:22,am:"徐鳳嬌",pm:"黃淑惠"},{m:1,d:23,am:"葉徐瑞日",pm:"梁翎㚬"},{m:1,d:26,am:"範瑜庭",pm:"李莉蒨"},{m:1,d:27,am:"蔡明秋",pm:"胡詩怡"},{m:1,d:28,am:"潘炳元",pm:"簡婉瑄"},{m:1,d:29,am:"黃育瀚",pm:"技術盈"},{m:1,d:30,am:"李思穎",pm:"劉興陽"},
-    {m:2,d:2,am:"黃詩媛",pm:"黃聖雄"},{m:2,d:3,am:"王德安",pm:"陳素密"},{m:2,d:4,am:"李雅嵐",pm:"範瑞美"},{m:2,d:5,am:"楊芷寧",pm:"楊寶雲"},{m:2,d:6,am:"李靜怡",pm:"劉梅枝"},{m:2,d:9,am:"胡月華",pm:"羅妙珍"},{m:2,d:10,am:"簡珮洵",pm:"游家嫻"},{m:2,d:11,am:"陳琇琴",pm:"陳思婷"},{m:2,d:12,am:"呂桂蘭",pm:"陳登睿"},{m:2,d:13,am:"劉玉鳳",pm:"張碧如"},{m:2,d:23,am:"彭寀妍",pm:"陳敏華"},{m:2,d:24,am:"王巧葳",pm:"潘月紅"},{m:2,d:25,am:"王宏裕",pm:"湯大志"},{m:2,d:26,am:"許詩昀",pm:"吳嘉綺"},
-    {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"遊家嫻",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"範瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"技術盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
-    {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"林煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"蘇素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"技術盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
+    {m:1,d:2,am:"周詩萍",pm:"彭筱茵"},{m:1,d:5,am:"陳思婷",pm:"駱玫伶"},{m:1,d:6,am:"黃暐晴",pm:"楊雯貝"},{m:1,d:7,am:"許衣彤",pm:"張向宜"},{m:1,d:8,am:"廖玟茜",pm:"林美珍"},{m:1,d:9,am:"陳嘉誼",pm:"莊彭傑"},{m:1,d:12,am:"張碧如",pm:"劉燕花"},{m:1,d:13,am:"陳敏華",pm:"黎玉惠"},{m:1,d:14,am:"潘月紅",pm:"林煜翔"},{m:1,d:15,am:"湯大志",pm:"張玉旻"},{m:1,d:16,am:"吳嘉綺",pm:"張瑞平"},{m:1,d:19,am:"閔愛連",pm:"胡月華"},{m:1,d:20,am:"郭欣穎",pm:"孟芝羽"},{m:1,d:21,am:"李淑珍",pm:"沈為程"},{m:1,d:22,am:"徐鳳嬌",pm:"黃淑惠"},{m:1,d:23,am:"葉徐瑞日",pm:"梁翎㚬"},{m:1,d:26,am:"範瑜庭",pm:"李莉蒨"},{m:1,d:27,am:"蔡明秋",pm:"胡詩怡"},{m:1,d:28,am:"潘炳元",pm:"簡婉瑄"},{m:1,d:29,am:"黃育瀚",pm:"李宜盈"},{m:1,d:30,am:"李思穎",pm:"劉興陽"},
+    {m:2,d:2,am:"黃詩媛",pm:"黃聖雄"},{m:2,d:3,am:"王德安",pm:"陳素密"},{m:2,d:4,am:"李雅嵐",pm:"范瑞美"},{m:2,d:5,am:"楊芷寧",pm:"楊寶雲"},{m:2,d:6,am:"李靜怡",pm:"劉梅枝"},{m:2,d:9,am:"胡月華",pm:"羅妙珍"},{m:2,d:10,am:"簡珮洵",pm:"游家嫻"},{m:2,d:11,am:"陳琇琴",pm:"陳思婷"},{m:2,d:12,am:"呂桂蘭",pm:"陳登睿"},{m:2,d:13,am:"劉玉鳳",pm:"張碧如"},{m:2,d:23,am:"彭寀妍",pm:"陳敏華"},{m:2,d:24,am:"王巧葳",pm:"潘月紅"},{m:2,d:25,am:"王宏裕",pm:"湯大志"},{m:2,d:26,am:"許詩昀",pm:"吳嘉綺"},
+    {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"胡秀玲",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"范瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"李宜盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
+    {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"林煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"蘇素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"李宜盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
 ];
 
 let allRosterData = [], currentYear = 2026, currentMonth = 1, isEditDeptMode = false;
