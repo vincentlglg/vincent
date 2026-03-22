@@ -2,9 +2,9 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>115年 展平鎮 值星管理系統 - 資料恢復版</title>
+    <title>115年 展平鎮 值星管理系統 - 列印優化版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
+        <style>
         :root { --main-font-size: 16px; }
         * { font-family: "Microsoft JhengHei", sans-serif; font-weight: bold !important; box-sizing: border-box; }
         body { background-color: #f0f2f5; margin: 0; text-align: center; }
@@ -23,6 +23,7 @@
         .staff-manager input, .staff-manager select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
         .btn-add { background: #2e7d32; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
         .btn-del { background: #c62828; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
+        .btn-edit { background: #f57c00; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; }
 
         .zoom-ctrl { background: #eee; padding: 5px 15px; border-radius: 20px; border: 1px solid #ccc; }
         
@@ -35,14 +36,15 @@
 
         .table-wrapper { width: 100%; overflow: auto; height: calc(100vh - 420px); background: white; border: 1px solid #ccc; }
         .editor-table, .list-table, .cal-box, #calendarGrid, .editor-table select { font-size: var(--main-font-size) !important; }
-        .editor-table { border-collapse: separate; border-spacing: 0; min-width: 4000px; }
+        .editor-table { border-collapse: separate; border-spacing: 0; min-width: 4200px; }
         
         .editor-table thead tr:nth-child(1) th { position: sticky; top: 0; z-index: 8000; background: #1a73e8; color: white; height: 55px; border: 1px solid #bbb; font-size: 24px !important; }
         .editor-table thead tr:nth-child(2) th { position: sticky; top: 55px; z-index: 7500; background: #1565c0; color: white; height: 45px; border: 1px solid #bbb; font-size: 20px !important; }
         
-        .fix-col-1 { position: sticky; left: 0; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 100px; }
-        .fix-col-2 { position: sticky; left: 100px; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 150px; }
-        .fix-col-3 { position: sticky; left: 250px; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 100px; border-right: 4px solid #FFD700 !important; }
+        .fix-col-0 { position: sticky; left: 0; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 50px; }
+        .fix-col-1 { position: sticky; left: 50px; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 100px; }
+        .fix-col-2 { position: sticky; left: 150px; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 150px; }
+        .fix-col-3 { position: sticky; left: 300px; z-index: 7000; background: #1a73e8 !important; color: white !important; width: 100px; border-right: 4px solid #FFD700 !important; }
         
         .editor-table td { border: 1px solid #bbb; padding: 5px; text-align: center; }
         .editor-table select { width: 100%; border: 1px solid #ccc; }
@@ -56,22 +58,75 @@
         .btn-edit-mode { background: #673ab7; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; }
         .btn-edit-mode.active { background: #f44336; }
 
+        /* --- 列印修正功能區 --- */
         @media print {
-            .nav-tabs, .control-bar, .auto-box, .warning-area, button, input[type="range"], .zoom-ctrl, .staff-manager { display: none !important; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-            body { background: white !important; margin: 0 !important; padding: 0 !important; }
-            .tab-content.active { display: block !important; width: 100% !important; margin: 0 !important; }
-            .styled-title { font-size: 20px !important; margin: 5px 0 !important; height: auto !important; }
-            #calView.active #calendarGrid { width: 100% !important; border: 2px solid #000 !important; gap: 1px !important; }
-            #calView .cal-box { min-height: 100px !important; padding: 2px !important; display: flex; flex-direction: column; justify-content: center; }
-            #calView .cal-box div:last-child { font-size: 18px !important; line-height: 1.4 !important; text-align: center !important; }
-            #listView.active { height: 98vh !important; overflow: hidden !important; }
-            #listView .list-table { width: 100% !important; height: 90% !important; table-layout: fixed !important; }
-            #listView .list-table td { padding: 0 !important; font-size: 22px !important; height: 2.8vh !important; vertical-align: middle !important; border: 1px solid #000 !important; }
-            #listView .list-table th { font-size: 18px !important; padding: 5px 0 !important; }
-            @page { margin: 0.6cm; }
+            @page { 
+                size: auto; /* 讓系統根據橫/直向自動調整 */
+                margin: 0.5cm; 
+            }
+            
+            /* 隱藏 UI 控制項 */
+            .nav-tabs, .control-bar, .auto-box, .warning-area, button, input, .zoom-ctrl, .staff-manager { 
+                display: none !important; 
+            }
+            
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            body { background: white !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            
+            .tab-content.active, .table-wrapper { 
+                width: 100% !important; 
+                height: auto !important; 
+                overflow: visible !important; 
+                margin: 0 !important;
+                display: block !important;
+            }
+            
+            /* 修正標題列印大小 */
+            .styled-title { font-size: 28px !important; margin: 10px 0 !important; }
+
+            /* --- 月曆視圖：橫印優化 --- */
+            #calView.active #calendarGrid { 
+                display: grid !important;
+                grid-template-columns: repeat(7, 1fr) !important;
+                width: 99vw !important; /* 強制撐開到接近滿版 */
+                min-width: 99vw !important;
+                border: 2px solid #000 !important; 
+                gap: 0 !important; /* 移除間隙避免計算誤差裁切 */
+                background: white !important;
+            }
+            #calView .cal-box { 
+                min-height: 120px !important; /* 橫印時格子拉高 */
+                border: 1px solid #000 !important; 
+                break-inside: avoid;
+                padding: 5px !important;
+            }
+            #calView .header-highlight {
+                font-size: 18px !important;
+                background: #eee !important;
+                border: 1px solid #000 !important;
+            }
+
+            /* --- 清單視圖：直印優化 --- */
+            #listView .list-table { 
+                width: 100% !important; 
+                min-width: 100% !important;
+                table-layout: fixed !important; 
+                border: 2px solid #000 !important;
+            }
+            #listView .list-table td, #listView .list-table th { 
+                padding: 8px !important; 
+                font-size: 18px !important; 
+                border: 1px solid #000 !important; 
+            }
+            #listView tr { break-inside: avoid; }
+
+            /* 排班編輯頁面(若需列印) */
+            .editor-table { min-width: 100% !important; width: 100% !important; table-layout: auto !important; }
+            .fix-col-0, .fix-col-1, .fix-col-2, .fix-col-3 { position: static !important; }
         }
     </style>
+
 </head>
 <body>
 
@@ -120,6 +175,7 @@
         <button class="btn-add" onclick="manageStaff('add')">新增</button>
         <select id="delStaffFromDept" onchange="updateDelStaffList(this.value)"></select>
         <select id="delStaffName" style="width:80px;"><option value="">選人</option></select>
+        <button class="btn-edit" onclick="manageStaff('edit')">修改姓名</button>
         <button class="btn-del" onclick="manageStaff('del')">刪除</button>
     </div>
 </div>
@@ -156,6 +212,7 @@
 </div>
 
 <script>
+// --- 此處保留您原始的 staffData, holidayMap, importData 與所有功能邏輯 ---
 let staffData = {
     "1處":["張瑞平","楊芷寧","胡桂梅","李靜怡","黃聖雄","胡月華","孟芝羽","沈為程","陳素密","莊桂華","範瑞美"],
     "2處":["簡珮洵","陳琇琴","呂桂蘭","黃淑惠","劉玉鳳","彭寀妍","梁翎㚬","謝月真","李莉蒨","羅新武","胡秀玲"],
@@ -184,11 +241,10 @@ const holidayMap = {
 
 const dayNames = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
 
-// 恢復原始 1-4 月份排班數據
 const importData = [
     {m:1,d:2,am:"周詩萍",pm:"彭筱茵"},{m:1,d:5,am:"陳思婷",pm:"駱玫伶"},{m:1,d:6,am:"黃暐晴",pm:"楊雯貝"},{m:1,d:7,am:"許衣彤",pm:"張向宜"},{m:1,d:8,am:"廖玟茜",pm:"林美珍"},{m:1,d:9,am:"陳嘉誼",pm:"莊彭傑"},{m:1,d:12,am:"張碧如",pm:"劉燕花"},{m:1,d:13,am:"陳敏華",pm:"黎玉惠"},{m:1,d:14,am:"潘月紅",pm:"林煜翔"},{m:1,d:15,am:"湯大志",pm:"張玉旻"},{m:1,d:16,am:"吳嘉綺",pm:"張瑞平"},{m:1,d:19,am:"閔愛連",pm:"胡月華"},{m:1,d:20,am:"郭欣穎",pm:"孟芝羽"},{m:1,d:21,am:"李淑珍",pm:"沈為程"},{m:1,d:22,am:"徐鳳嬌",pm:"黃淑惠"},{m:1,d:23,am:"葉徐瑞日",pm:"梁翎㚬"},{m:1,d:26,am:"範瑜庭",pm:"李莉蒨"},{m:1,d:27,am:"蔡明秋",pm:"胡詩怡"},{m:1,d:28,am:"潘炳元",pm:"簡婉瑄"},{m:1,d:29,am:"黃育瀚",pm:"技術盈"},{m:1,d:30,am:"李思穎",pm:"劉興陽"},
     {m:2,d:2,am:"黃詩媛",pm:"黃聖雄"},{m:2,d:3,am:"王德安",pm:"陳素密"},{m:2,d:4,am:"李雅嵐",pm:"範瑞美"},{m:2,d:5,am:"楊芷寧",pm:"楊寶雲"},{m:2,d:6,am:"李靜怡",pm:"劉梅枝"},{m:2,d:9,am:"胡月華",pm:"羅妙珍"},{m:2,d:10,am:"簡珮洵",pm:"游家嫻"},{m:2,d:11,am:"陳琇琴",pm:"陳思婷"},{m:2,d:12,am:"呂桂蘭",pm:"陳登睿"},{m:2,d:13,am:"劉玉鳳",pm:"張碧如"},{m:2,d:23,am:"彭寀妍",pm:"陳敏華"},{m:2,d:24,am:"王巧葳",pm:"潘月紅"},{m:2,d:25,am:"王宏裕",pm:"湯大志"},{m:2,d:26,am:"許詩昀",pm:"吳嘉綺"},
-    {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"胡秀玲",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"範瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"技術盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
+    {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"遊家嫻",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"範瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"技術盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
     {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"林煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"蘇素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"技術盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
 ];
 
@@ -203,7 +259,7 @@ let allRosterData = [], currentYear = 2026, currentMonth = 1, isEditDeptMode = f
     sM.value = 5; eM.value = 12;
 
     const h1 = document.getElementById("hRow1"), h2 = document.getElementById("hRow2");
-    h1.innerHTML = `<th rowspan="2" class="fix-col-1">單位</th><th rowspan="2" class="fix-col-2">人員姓名</th><th rowspan="2" class="fix-col-3">全年度<br>次數</th>`;
+    h1.innerHTML = `<th rowspan="2" class="fix-col-0">排</th><th rowspan="2" class="fix-col-1">單位</th><th rowspan="2" class="fix-col-2">人員姓名</th><th rowspan="2" class="fix-col-3">全年度<br>次數</th>`;
     for(let m=1; m<=12; m++){ h1.innerHTML += `<th colspan="2">${m}月</th>`; h2.innerHTML += `<th>日期</th><th>時段</th>`; }
     
     updateAllDeptSelectors();
@@ -250,8 +306,16 @@ function manageStaff(action) {
         if(!name) return alert("請輸入姓名");
         if(staffData[dept].includes(name)) return alert("該人員已存在");
         staffData[dept].push(name);
-        allRosterData.push({ dept, name, schedule: Object.fromEntries(Array.from({length:12}, (_,i)=>[i+1, {date:"", time:""}])) });
+        allRosterData.push({ dept, name, isEnabled: true, schedule: Object.fromEntries(Array.from({length:12}, (_,i)=>[i+1, {date:"", time:""}])) });
         document.getElementById("newStaffName").value = "";
+    } else if (action === 'edit') {
+        const dept = document.getElementById("delStaffFromDept").value, oldName = document.getElementById("delStaffName").value;
+        if(!dept || !oldName) return alert("請選擇要修改的人員");
+        const newName = prompt(`修改 [${oldName}] 的姓名為：`, oldName);
+        if(!newName || newName === oldName) return;
+        staffData[dept] = staffData[dept].map(n => n === oldName ? newName : n);
+        allRosterData.forEach(p => { if(p.dept === dept && p.name === oldName) p.name = newName; });
+        updateDelStaffList(dept);
     } else {
         const dept = document.getElementById("delStaffFromDept").value, name = document.getElementById("delStaffName").value;
         if(!dept || !name) return alert("請選擇人員");
@@ -275,7 +339,7 @@ function initData() {
     allRosterData = [];
     Object.keys(staffData).forEach(dept => {
         staffData[dept].forEach(name => {
-            let p = { dept, name, schedule: Object.fromEntries(Array.from({length:12}, (_,i)=>[i+1, {date:"", time:""}])) };
+            let p = { dept, name, isEnabled: true, schedule: Object.fromEntries(Array.from({length:12}, (_,i)=>[i+1, {date:"", time:""}])) };
             importData.forEach(item => {
                 if (item.am === name) { p.schedule[item.m].date = `${item.m}月${item.d}日`; p.schedule[item.m].time = "上午"; }
                 if (item.pm === name) { p.schedule[item.m].date = `${item.m}月${item.d}日`; p.schedule[item.m].time = "下午"; }
@@ -296,10 +360,13 @@ function renderAll() {
         let total = 0; for(let m=1; m<=12; m++) if(p.schedule[m].date) total++;
         const tr = document.createElement("tr");
         const isConflict = personConflictList.includes(p.name);
-
         let deptContent = isEditDeptMode ? `<select onchange="changePersonDept(${idx}, this.value)">` + Object.keys(staffData).map(d => `<option value="${d}" ${p.dept===d?'selected':''}>${d}</option>`).join('') + `</select>` : p.dept;
 
-        tr.innerHTML = `<td class="fix-col-1 ${isConflict?'conflict-text':''}">${deptContent}</td><td class="fix-col-2 ${isConflict?'conflict-text':''}">${p.name}</td><td class="fix-col-3">${total}</td>`;
+        tr.innerHTML = `
+            <td class="fix-col-0"><input type="checkbox" ${p.isEnabled?'checked':''} onchange="toggleStaffEnabled(${idx})"></td>
+            <td class="fix-col-1 ${isConflict?'conflict-text':''}">${deptContent}</td>
+            <td class="fix-col-2 ${isConflict?'conflict-text':''}">${p.name}</td>
+            <td class="fix-col-3">${total}</td>`;
         
         for(let m=1; m<=12; m++) {
             const tdD = document.createElement("td"), tdT = document.createElement("td");
@@ -318,6 +385,10 @@ function renderAll() {
         tbody.appendChild(tr);
     });
     renderCalendar(); renderList();
+}
+
+function toggleStaffEnabled(idx) {
+    allRosterData[idx].isEnabled = !allRosterData[idx].isEnabled;
 }
 
 function changePersonDept(pIdx, newDept) {
@@ -339,7 +410,6 @@ function getWorkdays(y, m) {
 
 function getConflicts() {
     let redConflictKeys = [], personConflictList = [], redArr = [], purArr = [];
-    
     for(let m=1; m<=12; m++) {
         let dayCheck = {};
         allRosterData.forEach(p => {
@@ -353,7 +423,6 @@ function getConflicts() {
             dayCheck[k].forEach(name => { if(!personConflictList.includes(name)) personConflictList.push(name); redConflictKeys.push(`${m}-${k}`); });
         }
     }
-
     allRosterData.forEach(p => {
         let activeMonths = [];
         for(let m=1; m<=12; m++) if(p.schedule[m].date) activeMonths.push({ m: m, time: p.schedule[m].time });
@@ -370,7 +439,6 @@ function getConflicts() {
             }
         }
     });
-
     const rd = document.getElementById("warnRed"), pd = document.getElementById("warnPurple");
     rd.style.display = redArr.length ? "block" : "none"; rd.innerHTML = "🚫 <b>重複：</b><br>" + redArr.join("<br>");
     pd.style.display = purArr.length ? "block" : "none"; pd.innerHTML = "⚠️ <b>規則：</b><br>" + purArr.join("<br>");
@@ -380,23 +448,18 @@ function getConflicts() {
 function autoScheduleRange() {
     const startM = parseInt(document.getElementById("startM").value), endM = parseInt(document.getElementById("endM").value);
     if(startM > endM) return alert("月份範圍錯誤");
-
     allRosterData.forEach(p => { for(let m=startM; m<=endM; m++){ p.schedule[m].date=""; p.schedule[m].time=""; }});
-
     for(let m = startM; m <= endM; m++) {
         const workDays = getWorkdays(currentYear, m);
         let slots = [];
         workDays.forEach(d => { slots.push({date: d, time: "上午"}); slots.push({date: d, time: "下午"}); });
-
         let assignedInMonth = new Set();
-
         slots.forEach(slot => {
             let candidates = allRosterData
-                .filter(p => !p.schedule[m].date && !assignedInMonth.has(p.name))
+                .filter(p => p.isEnabled && !p.schedule[m].date && !assignedInMonth.has(p.name))
                 .map(p => {
                     let totalCount = 0; 
                     for(let i=1; i<=12; i++) if(p.schedule[i].date) totalCount++;
-                    
                     let lastTime = "", consecutiveCount = 0, lastMonthAssigned = false;
                     for(let i = m - 1; i >= 1; i--) {
                         if(p.schedule[i].date) {
@@ -405,20 +468,15 @@ function autoScheduleRange() {
                             consecutiveCount++;
                         } else if(lastTime !== "") break;
                     }
-
                     let score = totalCount * 100; 
                     if(lastTime === slot.time) score += 10000; 
                     if(lastMonthAssigned && consecutiveCount >= 2) score += 20000; 
-                    
                     let sameDeptInMonth = allRosterData.filter(p2 => p2.dept === p.dept && assignedInMonth.has(p2.name)).length;
                     score -= sameDeptInMonth * 50;
-
                     score += Math.floor(Math.random() * 30);
                     return { p, score };
                 });
-
             candidates.sort((a,b) => a.score - b.score);
-
             if(candidates.length > 0) {
                 let winner = candidates[0].p;
                 winner.schedule[m].date = slot.date;
