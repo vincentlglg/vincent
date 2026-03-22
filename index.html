@@ -535,9 +535,33 @@ function exportFullYearExcel() {
 }
 
 function saveData() {
-    const blob = new Blob([JSON.stringify({year: currentYear, data: allRosterData, staffRaw: staffData})], {type:"text/plain"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `值星存檔_115.txt`; a.click();
+    // 獲取當前時間，格式為：MMDD_HHMM (例如 0322_1805)
+    const now = new Date();
+    const timestamp = 
+        (now.getMonth() + 1).toString().padStart(2, '0') + 
+        now.getDate().toString().padStart(2, '0') + "_" +
+        now.getHours().toString().padStart(2, '0') + 
+        now.getMinutes().toString().padStart(2, '0');
+
+    // 準備存檔內容
+    const blob = new Blob([JSON.stringify({
+        year: currentYear, 
+        data: allRosterData, 
+        staffRaw: staffData
+    })], {type:"text/plain"});
+
+    // 生成包含時間戳記的檔名
+    const fileName = `展平鎮值星存檔_115年_${timestamp}.txt`;
+
+    const a = document.createElement("a"); 
+    a.href = URL.createObjectURL(blob); 
+    a.download = fileName; 
+    a.click();
+    
+    // 釋放記憶體
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+
 
 function loadData(e) {
     const reader = new FileReader();
