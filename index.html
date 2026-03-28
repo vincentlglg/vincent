@@ -22,13 +22,40 @@
 }
 
 /* 讓表格 wrapper 填滿 tab-content 的剩餘所有空間 */
+/* 修正：確保表格容器有足夠空間顯示捲軸 */
 .table-wrapper { 
-    flex: 1; /* 自動伸展填滿 */
     width: 100%; 
-    overflow: auto; 
+    overflow-x: auto; /* 強制開啟水平捲軸 */
+    overflow-y: auto; /* 強制開啟垂直捲軸 */
+    /* 調整高度：扣掉上方導覽列與管理列的高度，讓底部留出空間給捲軸 */
+    height: calc(100vh - 280px); 
     background: white; 
     border: 1px solid #ccc; 
+    position: relative;
+    margin-bottom: 20px; /* 在底部留一點邊距，防止捲軸貼齊螢幕邊緣 */
 }
+
+/* 確保表格維持足夠寬度以產生捲軸 */
+.editor-table { 
+    border-collapse: separate; 
+    border-spacing: 0; 
+    min-width: 4200px; /* 維持 12 個月的總寬度 */
+    table-layout: fixed;
+}
+
+/* 優化捲軸樣式（讓它變粗一點比較好拉） */
+.table-wrapper::-webkit-scrollbar {
+    height: 15px; /* 水平捲軸高度 */
+    width: 15px;  /* 垂直捲軸寬度 */
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #bbb;
+    border-radius: 10px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
 
         
         .control-bar { padding: 10px; background: white; border-bottom: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; }
