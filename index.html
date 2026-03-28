@@ -79,18 +79,25 @@
 
             body { background: white !important; margin: 0 !important; padding: 0 !important; }
             
-            /* 清除編輯器寬度限制，讓表格符合紙張寬度 */
-            .tab-content.active, .table-wrapper { 
-                width: 100% !important; 
-                height: auto !important; 
-                overflow: visible !important; 
-                margin: 0 !important;
-            }
-            
-            .editor-table { 
-                min-width: 100% !important; 
-                table-layout: auto !important; 
-            }
+           /* 修改此處：讓容器填滿剩餘高度，並確保寬度 100% */
+.table-wrapper { 
+    width: 100%; 
+    overflow: auto; 
+    /* 改為 flex 增長或使用較小的扣除值，這裡建議用 100vh 扣除上方控制列的高度 */
+    height: calc(100vh - 220px); 
+    background: white; 
+    border: 1px solid #ccc; 
+    display: block;
+}
+
+/* 確保編輯表格能夠撐開 */
+.editor-table { 
+    border-collapse: separate; 
+    border-spacing: 0; 
+    /* 這裡原本是 4200px，確保它在水平方向能滾動 */
+    min-width: 4200px; 
+}
+
             
             /* 修正標題 */
             .styled-title { font-size: 24px !important; margin: 5px 0 !important; }
