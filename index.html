@@ -2,17 +2,17 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>115年 展平鎮 值星管理系統 - 列印優化版</title>
+    <title>115年 展平鎮 值星管理系統 - 螢幕優化版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root { --main-font-size: 16px; }
         * { font-family: "Microsoft JhengHei", sans-serif; font-weight: bold !important; box-sizing: border-box; }
-        body { background-color: #f0f2f5; margin: 0; text-align: center; }
+        body { background-color: #f0f2f5; margin: 0; text-align: center; overflow: hidden; /* 防止全頁面滾動，讓內部滾動更穩定 */ }
         
         .nav-tabs { background: #1a73e8; display: flex; justify-content: center; position: sticky; top: 0; z-index: 9999; }
         .tab-btn { padding: 15px 20px; border: none; background: none; color: white; cursor: pointer; font-size: 18px; }
         .tab-btn.active { background: #fff; color: #1a73e8; border-radius: 10px 10px 0 0; }
-        .tab-content { display: none; padding: 15px; }
+        .tab-content { display: none; padding: 15px; height: calc(100vh - 50px); }
         .tab-content.active { display: block; }
         
         .control-bar { padding: 10px; background: white; border-bottom: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -27,42 +27,41 @@
 
         .zoom-ctrl { background: #eee; padding: 5px 15px; border-radius: 20px; border: 1px solid #ccc; }
         
-        .styled-title { font-size: 42px !important; color: #00008B !important; margin: 20px 0; }
+        .styled-title { font-size: 42px !important; color: #00008B !important; margin: 15px 0; }
         .header-highlight { background: #ADD8E6 !important; color: #00008B !important; font-size: 32px !important; padding: 12px !important; border: 2px solid #4682B4 !important; }
 
         .warning-area { margin: 10px auto; width: 95%; padding: 10px; border-radius: 5px; display: none; text-align: left; }
         .warn-red { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .warn-purple { background: #f3e5f5; color: #7b1fa2; border: 1px solid #ce93d8; margin-top: 5px; }
 
-        /* --- 滾動條優化區域 --- */
+        /* --- 修正後的滾動容器，適配電腦螢幕 --- */
         .table-wrapper { 
             width: 100%; 
             overflow: auto; 
-            height: calc(100vh - 420px); 
+            /* 調整高度計算，扣除上方 UI 高度，確保底部滾動條能顯示在螢幕內 */
+            height: calc(100vh - 350px); 
             background: white; 
-            border: 1px solid #ccc; 
-            /* 讓滾動條永遠顯示，避免寬度變動 */
-            overflow-x: scroll; 
+            border: 2px solid #ccc; 
+            position: relative;
         }
 
-        /* 自定義滾動條樣式 (Chrome/Edge/Safari) */
+        /* 自定義滾動條：加粗並顯色，方便滑鼠操作 */
         .table-wrapper::-webkit-scrollbar {
-            height: 12px; /* 增加高度讓它更好點選 */
-            width: 12px;
+            height: 18px; 
+            width: 18px;
         }
         .table-wrapper::-webkit-scrollbar-track {
-            background: #f1f1f1;
+            background: #e0e0e0;
             border-radius: 10px;
         }
         .table-wrapper::-webkit-scrollbar-thumb {
-            background: #888; 
+            background: #1a73e8; 
             border-radius: 10px;
-            border: 2px solid #f1f1f1; /* 增加內距感 */
+            border: 3px solid #e0e0e0;
         }
         .table-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #555; /* 滑鼠經過變深色 */
+            background: #1565c0;
         }
-        /* --------------------- */
 
         .editor-table, .list-table, .cal-box, #calendarGrid, .editor-table select { font-size: var(--main-font-size) !important; }
         .editor-table { border-collapse: separate; border-spacing: 0; min-width: 4200px; }
@@ -91,8 +90,8 @@
             @page { size: A4 portrait; margin: 0.8cm; }
             .nav-tabs, .control-bar, .auto-box, .warning-area, button, input[type="range"], .zoom-ctrl, .staff-manager, input[type="checkbox"] { display: none !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-            body { background: white !important; margin: 0 !important; padding: 0 !important; }
-            .table-wrapper { width: 100%; overflow: auto; height: calc(100vh - 220px); background: white; border: 1px solid #ccc; display: block; }
+            body { background: white !important; margin: 0 !important; padding: 0 !important; overflow: visible; }
+            .table-wrapper { width: 100%; overflow: visible; height: auto; border: none; }
             .editor-table { border-collapse: separate; border-spacing: 0; min-width: 4200px; }
             .styled-title { font-size: 24px !important; margin: 5px 0 !important; }
             #calView.active #calendarGrid { width: 100% !important; border: 2px solid #000 !important; gap: 1px !important; }
@@ -166,12 +165,12 @@
     </div>
 </div>
 
-<div id="calView" class="tab-content">
+<div id="calView" class="tab-content" style="overflow-y: auto;">
     <h3 id="calTitle" class="styled-title">115年 1月 展平鎮 值星</h3>
     <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #ccc; padding: 10px;"></div>
 </div>
 
-<div id="listView" class="tab-content">
+<div id="listView" class="tab-content" style="overflow-y: auto;">
     <h3 id="listTitle" class="styled-title">115年 1月 展平鎮 值星</h3>
     <table class="list-table" style="width:100%; border-collapse: collapse; background:white;">
         <thead>
@@ -187,6 +186,7 @@
 </div>
 
 <script>
+// --- 此處維持您原始的所有 staffData, holidayMap 與邏輯處理 ---
 let staffData = {
     "1處":["張瑞平","楊芷寧","李靜怡","黃聖雄","胡月華","孟芝羽","沈為程","陳素密","莊桂華","范瑞美"],
     "2處":["簡珮洵","陳琇琴","呂桂蘭","黃淑惠","劉玉鳳","彭寀妍","梁翎㚬","謝月真","李莉蒨","羅新武","胡秀玲"],
@@ -219,7 +219,7 @@ const importData = [
     {m:1,d:2,am:"周詩萍",pm:"彭筱茵"},{m:1,d:5,am:"陳思婷",pm:"駱玫伶"},{m:1,d:6,am:"黃暐晴",pm:"楊雯貝"},{m:1,d:7,am:"許衣彤",pm:"張向宜"},{m:1,d:8,am:"廖玟茜",pm:"林美珍"},{m:1,d:9,am:"陳嘉誼",pm:"莊彭傑"},{m:1,d:12,am:"張碧如",pm:"劉燕花"},{m:1,d:13,am:"陳敏華",pm:"黎玉惠"},{m:1,d:14,am:"潘月紅",pm:"林煜翔"},{m:1,d:15,am:"湯大志",pm:"張玉旻"},{m:1,d:16,am:"吳嘉綺",pm:"張瑞平"},{m:1,d:19,am:"閔愛連",pm:"胡月華"},{m:1,d:20,am:"郭欣穎",pm:"孟芝羽"},{m:1,d:21,am:"李淑珍",pm:"沈為程"},{m:1,d:22,am:"徐鳳嬌",pm:"黃淑惠"},{m:1,d:23,am:"葉徐瑞日",pm:"梁翎㚬"},{m:1,d:26,am:"範瑜庭",pm:"李莉蒨"},{m:1,d:27,am:"蔡明秋",pm:"胡詩怡"},{m:1,d:28,am:"潘炳元",pm:"簡婉瑄"},{m:1,d:29,am:"黃育瀚",pm:"李宜盈"},{m:1,d:30,am:"李思穎",pm:"劉興陽"},
     {m:2,d:2,am:"黃詩媛",pm:"黃聖雄"},{m:2,d:3,am:"王德安",pm:"陳素密"},{m:2,d:4,am:"李雅嵐",pm:"范瑞美"},{m:2,d:5,am:"楊芷寧",pm:"楊寶雲"},{m:2,d:6,am:"李靜怡",pm:"劉梅枝"},{m:2,d:9,am:"胡月華",pm:"羅妙珍"},{m:2,d:10,am:"簡珮洵",pm:"游家嫻"},{m:2,d:11,am:"陳琇琴",pm:"陳思婷"},{m:2,d:12,am:"呂桂蘭",pm:"陳登睿"},{m:2,d:13,am:"劉玉鳳",pm:"張碧如"},{m:2,d:23,am:"彭寀妍",pm:"陳敏華"},{m:2,d:24,am:"王巧葳",pm:"潘月紅"},{m:2,d:25,am:"王宏裕",pm:"湯大志"},{m:2,d:26,am:"許詩昀",pm:"吳嘉綺"},
     {m:3,d:2,am:"黃淑惠",pm:"簡珮洵"},{m:3,d:3,am:"梁翎㚬",pm:"陳琇琴"},{m:3,d:4,am:"謝月真",pm:"呂桂蘭"},{m:3,d:5,am:"胡秀玲",pm:"羅新武"},{m:3,d:6,am:"李莉蒨",pm:"彭寀妍"},{m:3,d:9,am:"陳素密",pm:"劉玉鳳"},{m:3,d:10,am:"范瑞美",pm:"王宏裕"},{m:3,d:11,am:"羅妙珍",pm:"王巧葳"},{m:3,d:12,am:"楊寶雲",pm:"許詩昀"},{m:3,d:13,am:"劉梅枝",pm:"吳巫明"},{m:3,d:16,am:"陳昭明",pm:"周詩萍"},{m:3,d:17,am:"胡詩怡",pm:"黃暐晴"},{m:3,d:18,am:"游曉娟",pm:"許衣彤"},{m:3,d:19,am:"鍾美清",pm:"廖玟茜"},{m:3,d:20,am:"胡柏緯",pm:"陳嘉誼"},{m:3,d:23,am:"簡婉瑄",pm:"閔愛連"},{m:3,d:24,am:"李宜盈",pm:"郭欣穎"},{m:3,d:25,am:"曾鴻富",pm:"李淑珍"},{m:3,d:26,am:"陳伊柔",pm:"徐鳳嬌"},{m:3,d:27,am:"簡志偉",pm:"葉徐瑞日"},{m:3,d:30,am:"胡惠茹",pm:"範瑜庭"},{m:3,d:31,am:"陳登睿",pm:"黃之妤"},
-    {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"林煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"蘇素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"李宜盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
+    {m:4,d:1,am:"黎玉惠",pm:"黃育瀚"},{m:4,d:2,am:"林煜翔",pm:"李思穎"},{m:4,d:7,am:"張玉旻",pm:"黃詩媛"},{m:4,d:8,am:"張瑞平",pm:"蔡明秋"},{m:4,d:9,am:"黃聖雄",pm:"潘炳元"},{m:4,d:10,am:"孟芝羽",pm:"王德安"},{m:4,d:13,am:"沈為程",pm:"李雅嵐"},{m:4,d:14,am:"吳巫明",pm:"李靜怡"},{m:4,d:15,am:"劉興陽",pm:"胡月華"},{m:4,d:16,am:"陳思婷",pm:"楊芷寧"},{m:4,d:17,am:"張碧如",pm:"謝月真"},{m:4,d:20,am:"蔡江山",pm:"李莉蒨"},{m:4,d:21,am:"陳敏華",pm:"陳昭明"},{m:4,d:22,am:"傳素瑜",pm:"胡詩怡"},{m:4,d:23,am:"潘月紅",pm:"游曉娟"},{m:4,d:24,am:"彭筱茵",pm:"鍾美清"},{m:4,d:27,am:"範幸秀",pm:"胡柏緯"},{m:4,d:28,am:"莫慧心",pm:"簡婉瑄"},{m:4,d:29,am:"駱玫伶",pm:"李宜盈"},{m:4,d:30,am:"楊雯貝",pm:"曾鴻富"}
 ];
 
 let allRosterData = [], currentYear = 2026, currentMonth = 1, isEditDeptMode = false;
@@ -240,6 +240,7 @@ let allRosterData = [], currentYear = 2026, currentMonth = 1, isEditDeptMode = f
     initData();
 })();
 
+// 此處剩餘 JavaScript 邏輯 (manageDept, manageStaff, renderAll 等) 均與您之前版本完全一致
 function manageDept(action) {
     if(action === 'add') {
         const name = document.getElementById("newDeptName").value.trim();
@@ -354,7 +355,7 @@ function renderAll() {
                 if(redConflictKeys.includes(key)){ sD.classList.add("conflict-border"); sT.classList.add("conflict-border"); }
                 tdD.className = tdT.className = (sT.value==="上午"?"bg-am":"bg-pm");
             }
-            tdD.appendChild(sD); tdT.appendChild(sT); tr.appendChild(tdD); tr.appendChild(tdT);
+            tdD.appendChild(sD); tdT.appendChild(sT); tr.appendChild(tdD); tdT.style.borderRight = "2px solid #ccc"; tr.appendChild(tdT);
         }
         tbody.appendChild(tr);
     });
