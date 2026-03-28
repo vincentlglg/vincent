@@ -13,7 +13,23 @@
         .tab-btn { padding: 15px 20px; border: none; background: none; color: white; cursor: pointer; font-size: 18px; }
         .tab-btn.active { background: #fff; color: #1a73e8; border-radius: 10px 10px 0 0; }
         .tab-content { display: none; padding: 15px; }
-        .tab-content.active { display: block; }
+      /* 讓 tab-content 成為 Flex 容器 */
+.tab-content.active { 
+    display: flex; 
+    flex-direction: column;
+    height: calc(100vh - 180px); /* 180px 為上方 UI 的預估高度 */
+    padding: 15px; 
+}
+
+/* 讓表格 wrapper 填滿 tab-content 的剩餘所有空間 */
+.table-wrapper { 
+    flex: 1; /* 自動伸展填滿 */
+    width: 100%; 
+    overflow: auto; 
+    background: white; 
+    border: 1px solid #ccc; 
+}
+
         
         .control-bar { padding: 10px; background: white; border-bottom: 1px solid #ddd; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; align-items: center; }
         
